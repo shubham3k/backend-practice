@@ -19,7 +19,7 @@ const userSchema = new Schema(
             lowercase: true,
             trim: true,
         },
-        fullname :{
+        fullName :{
             type: String,
             required: true,
             trim: true,
@@ -40,7 +40,7 @@ const userSchema = new Schema(
         ],
         password:{
             type: String,
-            required: True
+            required: true
         },
         refreshToken:{
             type: String
