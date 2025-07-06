@@ -25,7 +25,7 @@ import userRouter from './routes/user.routes.js'
 // routes decleration 
 // since things are seperated we use app.use to use middleware
 
-app.use("/users", userRouter)
+app.use("/api/v1/users", userRouter)
 
 
 
