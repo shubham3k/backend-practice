@@ -73,4 +73,77 @@ const registerUser = asyncHandler( async (req, res) => {
 
 } )
 
-export { registerUser}
+const generateAccessAndRefreshToken = async(userID) => {
+    try {
+        const user = await User.findById(userID)
+        const accesToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken ()
+
+        user.refreshToken = refreshToken
+        user.save({validateBeforeSave: false})
+        return {accesToken, refreshToken}
+        
+    } catch (error) {
+        throw new ApiError(500, "something went wrong whire generating acces & refresh token")
+        
+    }
+}
+
+const loginUser = asyncHandler(async (req, res)=> {
+    //req.body bring the data from the database
+    //username and email
+    //if user not found return error
+    // found check password with username 
+    //acces and refresh token
+    //send tokens by cookies
+
+    const { email, username, password} = req.body
+    
+    if(!username || email){
+        throw new ApiError(400, "username or email is required")
+
+    }
+
+    const user = await User.findOne({
+        $or: [{username},{email}]
+    })
+
+    if(!user){
+        throw new ApiError(400, "user is not found")
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(isPasswordValid){
+        throw new ApiError(400, "password is incorrect")
+    }
+
+    const {accesToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+    .cookie("accessToken", accesToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser, accesToken, refreshToken
+            },
+            "user logged in successfully"
+        )
+    )
+
+
+})
+
+const logoutUser = asyncHandler(async(req,res) => {
+    
+})
+export { registerUser, loginUser}
